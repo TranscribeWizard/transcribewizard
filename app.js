@@ -69,7 +69,7 @@ l = console.log;
 //   var args = [].slice.apply(arguments).concat([stack[1].trim()]);
 //   return console.log(console, args);
 // }
-const port = process.env.PORT || '8080';
+const port = process.env.PORT || '3000';
 app.set('port', port);
 
 // create folders if they don't exist yet
@@ -152,7 +152,7 @@ app.use(function (err, req, res, next) {
   });
 });
 
-l(`Server listening on port ${port}`)
+l(`Server listening on port http://localhost:${port}`)
 
 server.listen(port);
 
