@@ -94,9 +94,9 @@ style.
     border: 1px solid #B3B3B3;
   }
 
-  .search input:focus{
-    border: 2px solid #4285f4;
-  }
+  //- .search input:focus{
+  //-   border: 2px solid #4285f4;
+  //- }
 
   .search input::placeholder{
     color: #bfbfbf;
@@ -114,7 +114,7 @@ style.
     margin-top: 10px;
     overflow-y: auto;
     padding-inline: 0.5em;
-    background-color: #fff;
+    //- background-color: #fff;
   }
 
   .options::-webkit-scrollbar{
@@ -122,17 +122,17 @@ style.
   }
 
   .options::-webkit-scrollbar-track{
-    background: #f1f1f1;
+    background: #20252e;
     border-radius: 1rem;
   }
 
   .options::-webkit-scrollbar-thumb{
-    background: #ccc;
+    background: #d926aa;
     border-radius: 1rem;
   }
 
   .options::-webkit-scrollbar-thumb:hover {
-    background: #b3b3b3;
+    background: #661ae6;
   }
 
   .options li {
@@ -142,12 +142,16 @@ style.
 
   .options li:where(:hover, :focus, .selected) {
     border-radius: 5px;
-    background: hsl(0deg 0% 90%);
+    background: #20252e
+  }
+
+  .options li:where(.selected) {
+    border: 1px solid #d926aa;
   }
 
   .options li:focus {
     outline: 0;
-    box-shadow: 0 0 3px #4285f4;
+    box-shadow: #d926aa; 
   }
 
   #languageLabel, #modelLabel, #translateLabel, #translate {

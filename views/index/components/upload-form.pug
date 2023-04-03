@@ -32,50 +32,50 @@ style.
 
 
 
-form.form#form
-  p(style="margin:0;margin-bottom:6px;") File Limits: Video Or Audio, Max 300 MB, Max 1 Hour Duration
+form.form#form(class="bg-base-300 rounded-md")
+  p(style="margin:0;margin-bottom:6px;" class="text-lg") File Limits: Video Or Audio, Max 300 MB, Max 1 Hour Duration
   .group
     label(for='file') Select (or drop) file
-    input#file(type='file')
+    input#file(type='file' class=" file-input-bordered file-input   file-input-primary max-md:max-w-xs w-full ")
   if !ytdlp
     .group
       label#disable-download-link(for='downloadLink') Enter a link for automatic download
-        p.disabled-paste-button PASTE
-      input(disabled #disable-download-link style="cursor:pointer;")(type='text' value="Paid Feature, More Info Coming Soon")
+        span.text-secondary.pl-3 PASTE
+      input(disabled #disable-download-link  class="input input-bordered input-primary w-full max-md:max-w-xs" style="cursor:pointer;")(type='text' value="Paid Feature, More Info Coming Soon")
   if ytdlp
     label(for='downloadLink') Enter a link for automatic download
-      p.paste-button PASTE
-    input#downloadLink(type='text' placeholder="Enter a link to a video here")
+      p.text-secondary.pl-3 PASTE
+    input#downloadLink(type='text' class="input input-bordered input-primary w-full max-md:max-w-xs" placeholder="Enter a link to a video here")
   .group
     label(for='languageSelect')#languageLabel Language (#{languagesArray.length} Options)
     .wrapper
-      button#languageSelect.select-btn(type='button')
+      button#languageSelect.select-btn(type='button' class='input-bordered input-primary input focus:ring-offset-4')
         span#language.select-value(data-value='auto-detect' name='language') Auto-Detect
         i.fa-solid.fa-angle-down
-      .content
-        .search
+      .content(class="rounded-md border-2 border-primary !bg-base-100")
+        .search(class="")
           i.fa-solid.fa-magnifying-glass
-          input(spellcheck='false' type='search' placeholder='Filter...' tabindex='0')
+          input(spellcheck='false' type='search' placeholder='Filter...' class="rounded-md  border-primary border" tabindex='0')
         ul.options.languages
           each language in languagesArray
             li.option(data-value=language.value tabindex='0')= language.name
   .group
     label(for='modelSelect')#modelLabel Model (#{modelsArray.length} Options)
     .wrapper
-      button#modelSelect.select-btn(type='button')
+      button#modelSelect.select-btn(type='button' class="input-bordered input-primary input focus:ring-offset-4")
         span#model.select-value(name='model')= modelsArray[0].name
         i.fa-solid.fa-angle-down
-      .content
+      .content(class="rounded-md border-2 border-primary !bg-base-100")
         .search
           i.fa-solid.fa-magnifying-glass
-          input(spellcheck='false' type='search' placeholder='Filter...')
+          input(spellcheck='false' type='search' class="rounded-md  border-primary border" placeholder='Filter...')
         ul.options.models
           each model in modelsArray
             li.option(data-value= model.value tabindex='0')= model.name
   .group.translateHolder
     label#translateLabel(for='translate') Translate to different languages
-    input#translate(type='checkbox' name='translate')
-  button#upload-button.submit-btn(type='submit') Upload
+    input#translate(type='checkbox' class="checkbox checkbox-primary" name='translate')
+  button#upload-button.submit-btn(type='submit' class="") Upload
 
 
   script.
