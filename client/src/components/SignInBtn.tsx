@@ -5,7 +5,7 @@ import Image from 'next/image'
 
 const SignInBtn = ({}) => {
   return (
-    <div onClick={()=> signIn("google")} className="flex border  md:cursor-pointer shadow-xl justify-center items-center gap-4 p-3 rounded-md bg-slate-800">
+    <div onClick={()=>  signIn("google",{callbackUrl: `${window.location.origin}/transcribe`})} className="flex border  md:cursor-pointer shadow-xl justify-center items-center gap-4 p-3 rounded-md bg-slate-800">
     <div>
       <Image src={'/images/googlelogo.png'} height={15} width={20} alt={'google'}/>
     </div>

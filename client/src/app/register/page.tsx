@@ -3,7 +3,7 @@ import { type NextPage } from 'next'
 
 
 
-const page:NextPage = ({}) => {
+const Page:NextPage = ({}) => {
   return (
     <div className='min-h-screen justify-center flex items-center'>
       <Register />
@@ -11,4 +11,4 @@ const page:NextPage = ({}) => {
   )
 }
 
-export default page
+export default Page

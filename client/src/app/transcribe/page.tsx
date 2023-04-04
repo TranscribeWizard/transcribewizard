@@ -5,7 +5,7 @@ import {type NextPage } from "next";
 
 
 
-const page:NextPage = ({}) => {
+const Page:NextPage = ({}) => {
   return (
     <>
    <Navbar />
@@ -16,4 +16,4 @@ const page:NextPage = ({}) => {
   );
 };
 
-export default page;
+export default Page;
