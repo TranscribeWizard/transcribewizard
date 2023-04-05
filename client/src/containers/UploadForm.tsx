@@ -2,35 +2,72 @@
 
 import { ComboBox } from "@/components";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import {  useForm } from "react-hook-form";
 import { languagesArray, modelsArray } from "@/constants/constants";
+import { Toaster, toast } from "react-hot-toast";
+import { notify } from "../utils/notify";
+
+
+
+type ModelAndLang = {
+  name: string,
+  value: string
+}
+
+type FormData = {
+  file: File[];
+  language: ModelAndLang;
+  model: ModelAndLang;
+  ytdlink: string;
+}
 
 const UploadForm = ({}) => {
   const [somethingWentWrong, setSomethingWentWrong] = useState(false);
   const { register, handleSubmit, control } = useForm();
 
-  const onsubmit = async (fdata) => {
+  const onsubmit = async (fdata: FormData) => {
     const { file, language, model, ytdlink } = fdata;
-    console.log(file, language, model, ytdlink);
+    // console.log(file, language, model, ytdlink);
+    if (!file[0] && !ytdlink  ) {
+     return notify("Provide a file or a link for transcribing", "error");
+    }
+
+    if (file[0] && ytdlink) {
+      return notify("Provide only one thing a link or a file", "error");
+    }
+
     const formData = new FormData();
-    formData.append("file", file[0]);
+    formData.append("file", file[0] as Blob);
     formData.append("language", language.value);
     formData.append("model", model.value);
     formData.append("ytdlink", ytdlink);
 
+    
+    
     try {
       const res = await fetch("http://localhost:5001/api/v1/transcribe", {
         method: "POST",
         body: formData,
       });
-      console.log(await res.json());
-    } catch (error) {
-      console.log(error);
+      const resData = await res.json()
+     if(!res.ok){
+       notify(resData.message, "error");
+     }
+     else{
+       notify("File uploaded successfully",'success');
+     }
+    } catch (error: any) {
+      console.log('Error: ',error);
+      notify("something went wrong", "error");
     }
   };
 
+
+
   return (
     <div className="rounded-md bg-base-300">
+      <Toaster />
+
       <h1 className="text-center text-2xl font-bold">Upload Form</h1>
       <form
         onSubmit={handleSubmit(onsubmit)}
@@ -65,7 +102,7 @@ const UploadForm = ({}) => {
           <ComboBox
             control={control}
             dataArr={languagesArray}
-            defaultValue={languagesArray[1]}
+            defaultValue={languagesArray[0]}
             name="language"
           />
         </div>
@@ -76,7 +113,7 @@ const UploadForm = ({}) => {
           <ComboBox
             control={control}
             dataArr={modelsArray}
-            defaultValue={modelsArray[5]}
+            defaultValue={modelsArray[3]}
             name="model"
           />
         </div>

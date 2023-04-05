@@ -3,7 +3,7 @@
 import { Combobox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
 import { Fragment, useState } from 'react'
-import { Control, useController } from 'react-hook-form'
+import { useController } from 'react-hook-form'
 
 type Data = {
   value:string,

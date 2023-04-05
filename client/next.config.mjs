@@ -9,7 +9,15 @@ const config = {
   reactStrictMode: true,
   experimental:{
     appDir: true,
-  }
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+    ],
+  },
 
   /**
    * If you have the "experimental: { appDir: true }" setting enabled, then you
