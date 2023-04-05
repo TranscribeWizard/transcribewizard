@@ -1,10 +1,9 @@
-
 const {
   downloadFileApi,
   getFilename,
 } = require("../downloading/yt-dlp-download");
 const fs = require("fs-extra");
-
+const transcribeAndTranslate = require("../transcribeAndTranslate/transcribeAndTranslate");
 
 const l = console.log;
 // generate random 10 digit number
@@ -14,16 +13,21 @@ function generateRandomNumber() {
 
 exports.initiateTranscribingService = async (req, res, next) => {
   try {
-
-// TODO: add language code instead of language name
-
     const file = req.file;
     l(req.body);
     const { language, model, ytdlink } = req.body;
+
     const isenmodel = model.split(".")[1] === "en";
+    l("isenmodel :", isenmodel);
+
     const lang = language === "auto-detect" && isenmodel ? "en" : language;
+    l("lang :", lang);
+
     const numberToUse = generateRandomNumber();
-    const downloadLink = ytdlink;
+
+    const downloadLink = ytdlink || null;
+    l("dowmloadlink :", downloadLink);
+
     let originalFileName, uploadFileName, uploadFilePath;
     if (file) {
       originalFileName = file.originalname;
@@ -31,23 +35,20 @@ exports.initiateTranscribingService = async (req, res, next) => {
       uploadFilePath = file.path;
     }
 
-    // if both not prvided
+    //!! if both not prvided
     if (!file && !ytdlink) {
-      return res.status(400).json({
-        msg: "No file or youtube link provided",
-      });
+      next(new ErrorHandler("No file or youtube link provided", 400));
     }
 
-    // if both  prvided
+    //!! if both  prvided
 
     if (file && ytdlink) {
-      return res.status(400).json({
-        msg: "Provide file or url (any one)",
-      });
+      next(new ErrorHandler("Both file and youtube link provided", 400));
     }
 
     let filename;
     if (downloadLink) {
+      l("checking download link");
       // hit yt-dlp and get file title name
       filename = await getFilename(downloadLink);
     } else {
@@ -55,35 +56,52 @@ exports.initiateTranscribingService = async (req, res, next) => {
     }
 
     fs.mkdirp(`${process.cwd()}/transcriptions/${numberToUse}`);
+
+    // const host = "https://transcribeservice.herokuapp.com";
+    const host = "http://localhost:5001"
+
     const transcriptionOutputPath = `${process.cwd()}/transcriptions/${numberToUse}`;
-    l(filename);
+    l("uploaded filename :",filename);
 
-if(downloadLink){
+    if (downloadLink) {
+        res.status(200).json({
+        message: "starting-transcription",
+        // where the data will be sent from
+        transcribeDataEndpoint: `${host}/api/${numberToUse}`,
+        fileTitle: filename,
+      });
+    } else {
+        res.status(200).json({
+        message: "starting-transcription",
+        // where the data will be sent from
+        transcribeDataEndpoint: `${host}/api/${numberToUse}`,
+        fileTitle: filename,
+      });
+    }
 
-}else{
-  res.send({
-    message: 'starting-transcription',
-    // where the data will be sent from
-    transcribeDataEndpoint: `${host}/api/${numberToUse}`,
-    fileTitle: filename,})
+    await transcribeAndTranslate({
+      language: lang,
+      model,
+      uploadFileName,
+      originalFileName,
+      uploadFilePath,
+      transcriptionOutputPath,
+      numberToUse,
+      next
+    });
 
-}
-
-await transcribeAndTranslate()
     // const directoryName = makeFileNameSafe(filename)
 
     // l(directoryName)
 
-    res.status(200).json({
-      file,
-      model,
-      language,
-      filename,
-    });
+    // res.status(200).json({
+    //   file,
+    //   model,
+    //   language,
+    //   filename,
+    // });
   } catch (error) {
-    res.status(500).json({
-      error,
-    });
+    return res.status(500).json({msg:'something went wrong',error});
   }
 };
 

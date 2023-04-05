@@ -2,11 +2,17 @@ const ErrorHandler = require('../utils/ErrrorHandler')
 
 
 module.exports = (err,req,res,next) =>{
-    err.statuscode = err.statuscode || 500,
+    err.statusCode = err.statusCode || 500,
     err.message = err.message || "Internal Server Error"
 
-    res.status(err.statuscode).json({
+    if(err.name == 'CastError'){
+       const message = `Resourse Not Found. Invalid ${err.path}`
+       err = new ErrorHandler(message,400)
+    }
+
+    res.status(err.statusCode).json({
         success:false,
-        message:err.message
+        message:err.message,
+        // Stack:err.stack
     })
 }
