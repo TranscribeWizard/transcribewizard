@@ -1,13 +1,13 @@
 const which = require("which");
-const tryCatch = require("../middleware/catchAsyncErr");
+const tryCatch = require("../../middleware/catchAsyncErr");
 const spawn = require("child_process").spawn;
-const { handleProcessClose, buildArguments, handleStdErr } = require("./transcribing");
+const { handleProcessClose, buildArguments, handleStdErr } = require("./helpers");
 
 l = console.log;
 
 const whisperPath = which.sync("whisper-ctranslate2");
 
-const transcribeAndTranslate = async ({
+const transcribe = async ({
   language,
   model,
   uploadFileName,
@@ -22,7 +22,7 @@ const transcribeAndTranslate = async ({
       const processDir = process.cwd();
 
       // original upload file path
-      const originalUpload = `${processDir}/uploads/${uploadFileName}`;
+      const originalUpload = `${processDir}/src/media/uploads/${uploadFileName}`;
 
       //
       // const processingDataPath = `${processDir}/transcriptions/${numberToUse}/processing_data.json`
@@ -58,4 +58,4 @@ const transcribeAndTranslate = async ({
   );
 };
 
-module.exports = transcribeAndTranslate;
+module.exports = transcribe;

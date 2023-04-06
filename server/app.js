@@ -5,18 +5,18 @@ const app = express();
 // const io = require("socket.io")(server);
 
 const cors = require("cors");
-
 const dotenv = require("dotenv");
-const transcribeserviceRouter = require("./routes/transcribeserviceRouter");
-
-const errorMiddlewear = require("./middleware/error");
 dotenv.config();
+const errorMiddlewear = require("./src/middleware/error");
+
+const transcribeserviceRouter = require("./src/routes/transcribeserviceRouter");
+
 
 const PORT = process.env.PORT || 5001;
 
 // Handling uncaught expections
 
-process.on("uncaughtException", (err, promise) => {
+process.on("uncaughtException", (err) => {
   console.log(`Error: ${err.message}`);
   console.log(`Stack: ${err.stack}`);
   console.log("Shutting Down The Server Due To Uncaught Exception");
@@ -28,7 +28,6 @@ app.use(express.json());
 app.use(cors());
 
 app.get("/", (req, res) => res.send("Hello World!"));
-
 app.use("/api/v1/transcribe", transcribeserviceRouter);
 
 
@@ -45,9 +44,10 @@ const mainserver = app.listen(PORT, () => {
 
 app.use(errorMiddlewear);
 
-//  Handling unhandled promise rejections
 
-process.on("unhandledRejection", (err, promise) => {
+
+//  Handling unhandled promise rejections
+process.on("unhandledRejection", (err) => {
   console.log(`Error: ${err.message}`);
   console.log(`Stack: ${err.stack}`);
   console.log("Shutting Down The Server Due To Unhandled Promise Rejection");

@@ -1,13 +1,13 @@
 const {
   downloadFileApi,
   getFilename,
-} = require("../downloading/yt-dlp-download");
+} = require("../utils/downloading/yt-dlp-download");
 const fs = require("fs-extra");
-const transcribeAndTranslate = require("../transcribeAndTranslate/transcribeAndTranslate");
+const transcribe = require("../services/transcribe");
 
 const l = console.log;
 // generate random 10 digit number
-function generateRandomNumber() {
+const generateRandomNumber = () => {
   return Math.floor(Math.random() * 10000000000).toString();
 }
 
@@ -38,6 +38,8 @@ exports.initiateTranscribingService = tryCatch(async (req, res, next) => {
       uploadFilePath = file.path;
     }
 
+    l("uploadfile path :", uploadFilePath);
+
     //!! if both not prvided
     if (!file && !ytdlink) {
      return next(new ErrorHandler("No file or youtube link provided", 400));
@@ -58,12 +60,14 @@ exports.initiateTranscribingService = tryCatch(async (req, res, next) => {
       filename = uploadFileName;
     }
 
-    fs.mkdirp(`${process.cwd()}/transcriptions/${numberToUse}`);
+l("cwd", process.cwd());
+
+    fs.mkdirp(`${process.cwd()}/media/transcriptions/${numberToUse}`);
 
     // const host = "https://transcribeservice.herokuapp.com";
     const host = "http://localhost:5001"
 
-    const transcriptionOutputPath = `${process.cwd()}/transcriptions/${numberToUse}`;
+    const transcriptionOutputPath = `${process.cwd()}/src/media/transcriptions/${numberToUse}`;
     l("uploaded filename :",filename);
 
     if (downloadLink) {
@@ -82,7 +86,7 @@ exports.initiateTranscribingService = tryCatch(async (req, res, next) => {
       });
     }
 
-    await transcribeAndTranslate({
+    await transcribe({
       language: lang,
       model,
       uploadFileName,
