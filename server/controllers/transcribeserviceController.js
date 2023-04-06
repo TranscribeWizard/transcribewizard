@@ -11,8 +11,11 @@ function generateRandomNumber() {
   return Math.floor(Math.random() * 10000000000).toString();
 }
 
-exports.initiateTranscribingService = async (req, res, next) => {
-  try {
+const tryCatch = require("../middleware/catchAsyncErr");
+const ErrorHandler = require("../utils/ErrorHandler");
+
+exports.initiateTranscribingService = tryCatch(async (req, res, next) => {
+
     const file = req.file;
     l(req.body);
     const { language, model, ytdlink } = req.body;
@@ -20,7 +23,7 @@ exports.initiateTranscribingService = async (req, res, next) => {
     const isenmodel = model.split(".")[1] === "en";
     l("isenmodel :", isenmodel);
 
-    const lang = language === "auto-detect" && isenmodel ? "en" : language;
+    const lang = language === "auto-detect" ? isenmodel ? "en" : null : language;
     l("lang :", lang);
 
     const numberToUse = generateRandomNumber();
@@ -37,13 +40,13 @@ exports.initiateTranscribingService = async (req, res, next) => {
 
     //!! if both not prvided
     if (!file && !ytdlink) {
-      next(new ErrorHandler("No file or youtube link provided", 400));
+     return next(new ErrorHandler("No file or youtube link provided", 400));
     }
 
     //!! if both  prvided
 
     if (file && ytdlink) {
-      next(new ErrorHandler("Both file and youtube link provided", 400));
+      return next(new ErrorHandler("Both file and youtube link provided", 400));
     }
 
     let filename;
@@ -86,8 +89,7 @@ exports.initiateTranscribingService = async (req, res, next) => {
       originalFileName,
       uploadFilePath,
       transcriptionOutputPath,
-      numberToUse,
-      next
+      numberToUse
     });
 
     // const directoryName = makeFileNameSafe(filename)
@@ -100,9 +102,7 @@ exports.initiateTranscribingService = async (req, res, next) => {
     //   language,
     //   filename,
     // });
-  } catch (error) {
-    return res.status(500).json({msg:'something went wrong',error});
-  }
-};
+
+})
 
 exports.getTranscribedFile = async (req, res, next) => {};

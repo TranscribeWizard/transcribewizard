@@ -1,5 +1,9 @@
 const express = require("express");
 const app = express();
+
+// const server = require("http").createServer(app);
+// const io = require("socket.io")(server);
+
 const cors = require("cors");
 
 const dotenv = require("dotenv");
@@ -22,17 +26,24 @@ process.on("uncaughtException", (err, promise) => {
 
 app.use(express.json());
 app.use(cors());
-app.use(errorMiddlewear);
 
 app.get("/", (req, res) => res.send("Hello World!"));
 
 app.use("/api/v1/transcribe", transcribeserviceRouter);
 
 
-const server = app.listen(PORT, () => {
+const mainserver = app.listen(PORT, () => {
   console.log(`server is running on http://localhost:${PORT}`);
 });
 
+// io.on('connection', (socket) => {
+//   console.log('user connected');
+//   socket.on('disconnect', function () {
+//     console.log('user disconnected');
+//   });
+// })
+
+app.use(errorMiddlewear);
 
 //  Handling unhandled promise rejections
 
@@ -41,5 +52,5 @@ process.on("unhandledRejection", (err, promise) => {
   console.log(`Stack: ${err.stack}`);
   console.log("Shutting Down The Server Due To Unhandled Promise Rejection");
 
-  server.close(() => process.exit(1));
+  mainserver.close(() => process.exit(1));
 })

@@ -23,7 +23,7 @@ const Navbar = ({}) => {
           <label tabIndex={0} className="btn-ghost btn-circle avatar btn">
             <div className="w-10 rounded-full">
             <Image
-          src="https://images.unsplash.com/photo-1680618051492-9f2b51e1642c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHw0fHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60"
+          src="https://pbs.twimg.com/profile_images/1615295226738003969/piedPR0-_400x400.jpg"
           alt="back icon"
           height={20}
           width={20}

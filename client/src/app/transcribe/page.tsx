@@ -7,7 +7,7 @@ import { io } from "socket.io-client";
 
 
 const Page:NextPage = ({}) => {
-  const socket = io("ws://localhost:5001");
+  // const socket = io("ws://localhost:5001");
   return (
     <>
    <Navbar />

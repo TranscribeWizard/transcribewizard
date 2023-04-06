@@ -22,9 +22,9 @@ type FormData = {
 }
 
 const UploadForm = ({}) => {
-  const [somethingWentWrong, setSomethingWentWrong] = useState(false);
-  const { register, handleSubmit, control } = useForm();
 
+  const { register, handleSubmit, control } = useForm();
+  
   const onsubmit = async (fdata: FormData) => {
     const { file, language, model, ytdlink } = fdata;
     // console.log(file, language, model, ytdlink);
@@ -61,6 +61,7 @@ const UploadForm = ({}) => {
       notify("something went wrong", "error");
     }
   };
+
 
 
 
@@ -117,9 +118,8 @@ const UploadForm = ({}) => {
             name="model"
           />
         </div>
-        <button type="submit" className="btn my-10">
-          Transcribe
-        </button>
+        <input type="submit" value="Transcribe" className="btn my-10"/>
+          
       </form>
     </div>
   );
