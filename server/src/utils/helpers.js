@@ -1,5 +1,10 @@
 const l = console.log;
 
+const generateRandomNumber = () => {
+  return Math.floor(Math.random() * 10000000000).toString();
+}
+
+
 const makeFileNameSafe =  (string) => {
     return filenamify(string, {replacement: '_' }) // replace all non-URL-safe characters with an underscore
       .split('：').join(':') // replace chinese colon with english colon
@@ -72,5 +77,6 @@ const makeFileNameSafe =  (string) => {
 
   module.exports = {
     makeFileNameSafe,
-    formatStdErr
+    formatStdErr,
+    generateRandomNumber
   }

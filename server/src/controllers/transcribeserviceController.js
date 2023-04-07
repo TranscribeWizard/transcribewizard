@@ -4,109 +4,101 @@ const {
 } = require("../utils/downloading/yt-dlp-download");
 const fs = require("fs-extra");
 const transcribe = require("../services/transcribe");
-
-const l = console.log;
-// generate random 10 digit number
-const generateRandomNumber = () => {
-  return Math.floor(Math.random() * 10000000000).toString();
-}
-
+const { generateRandomNumber } = require("../utils/helpers");
 const tryCatch = require("../middleware/catchAsyncErr");
 const ErrorHandler = require("../utils/ErrorHandler");
 
+const l = console.log;
+
 exports.initiateTranscribingService = tryCatch(async (req, res, next) => {
+  const file = req.file;
+  l(req.body);
 
-    const file = req.file;
-    l(req.body);
-    const { language, model, ytdlink } = req.body;
+  const { language, model, ytdlink } = req.body;
 
-    const isenmodel = model.split(".")[1] === "en";
-    l("isenmodel :", isenmodel);
+  const isenmodel = model.split(".")[1] === "en";
+  l("isenmodel :", isenmodel);
 
-    const lang = language === "auto-detect" ? isenmodel ? "en" : null : language;
-    l("lang :", lang);
+  const lang =
+    language === "auto-detect" ? (isenmodel ? "en" : null) : language;
+  l("lang :", lang);
 
-    const numberToUse = generateRandomNumber();
+  const numberToUse = generateRandomNumber();
 
-    const downloadLink = ytdlink || null;
-    l("dowmloadlink :", downloadLink);
+  const downloadLink = ytdlink || null;
+  l("dowmloadlink :", downloadLink);
 
-    let originalFileName, uploadFileName, uploadFilePath;
-    if (file) {
-      originalFileName = file.originalname;
-      uploadFileName = file.filename;
-      uploadFilePath = file.path;
-    }
+  let originalFileName, uploadedFileName, uploadedFilePath;
+  if (file) {
+    originalFileName = file.originalname;
+    uploadedFileName = file.filename;
+    uploadedFilePath = file.path;
+  }
 
-    l("uploadfile path :", uploadFilePath);
+  l("uploadfile path :", uploadedFilePath);
 
-    //!! if both not prvided
-    if (!file && !ytdlink) {
-     return next(new ErrorHandler("No file or youtube link provided", 400));
-    }
+  //!! if both not prvided
+  if (!file && !ytdlink) {
+    return next(new ErrorHandler("No file or youtube link provided", 400));
+  }
 
-    //!! if both  prvided
+  //!! if both  prvided
 
-    if (file && ytdlink) {
-      return next(new ErrorHandler("Both file and youtube link provided", 400));
-    }
+  if (file && ytdlink) {
+    return next(new ErrorHandler("Both file and youtube link provided", 400));
+  }
 
-    let filename;
-    if (downloadLink) {
-      l("checking download link");
-      // hit yt-dlp and get file title name
-      filename = await getFilename(downloadLink);
-    } else {
-      filename = uploadFileName;
-    }
+  let filename;
+  if (downloadLink) {
+    l("checking download link");
+    // hit yt-dlp and get file title name
+    filename = await getFilename(downloadLink);
+  } else {
+    filename = uploadedFileName;
+  }
 
-l("cwd", process.cwd());
+  fs.mkdirp(`${process.cwd()}/media/transcriptions/${numberToUse}`);
 
-    fs.mkdirp(`${process.cwd()}/media/transcriptions/${numberToUse}`);
+  const host = "http://localhost:5001";
 
-    // const host = "https://transcribeservice.herokuapp.com";
-    const host = "http://localhost:5001"
+  const transcriptionOutputPath = `${process.cwd()}/media/transcriptions/${numberToUse}`;
 
-    const transcriptionOutputPath = `${process.cwd()}/src/media/transcriptions/${numberToUse}`;
-    l("uploaded filename :",filename);
+  l("uploaded filename :", filename);
 
-    if (downloadLink) {
-        res.status(200).json({
-        message: "starting-transcription",
-        // where the data will be sent from
-        transcribeDataEndpoint: `${host}/api/${numberToUse}`,
-        fileTitle: filename,
-      });
-    } else {
-        res.status(200).json({
-        message: "starting-transcription",
-        // where the data will be sent from
-        transcribeDataEndpoint: `${host}/api/${numberToUse}`,
-        fileTitle: filename,
-      });
-    }
-
-    await transcribe({
-      language: lang,
-      model,
-      uploadFileName,
-      originalFileName,
-      uploadFilePath,
-      transcriptionOutputPath,
-      numberToUse
+  if (downloadLink) {
+    res.status(200).json({
+      message: "Download Started",
+      estTimeInSec: 60,
+      transcribeDataEndpoint: `${host}/api/v1/transcribe/${numberToUse}`,
+      fileTitle: filename,
     });
+  } else {
+    res.status(200).json({
+      message: "Transcription Started",
+      estTimeInSec: 20,
+      transcribeDataEndpoint: `${host}/api/v1/transcribe/${numberToUse}`,
+      fileTitle: filename,
+    });
+  }
 
-    // const directoryName = makeFileNameSafe(filename)
+  await transcribe({
+    language: lang,
+    model,
+    uploadedFileName,
+    originalFileName,
+    uploadedFilePath,
+    transcriptionOutputPath,
+    numberToUse,
+  });
+});
 
-    // l(directoryName)
+exports.getTranscribedFile = tryCatch(async (req, res, next) => {
+  const { fileid } = req.params;
+  const {uploadedFileName} = req.body;
+  l("fileid :", fileid);
 
-    // res.status(200).json({
-    //   file,
-    //   model,
-    //   language,
-    //   filename,
-    // });
-
-})
-
-exports.getTranscribedFile = async (req, res, next) => {};
+  res.status(200).json({
+    success: true,
+    uploadedFileName
+  });
+});

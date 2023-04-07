@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const fs = require('fs')
 
 // const server = require("http").createServer(app);
 // const io = require("socket.io")(server);
@@ -23,6 +24,9 @@ process.on("uncaughtException", (err) => {
   process.exit(1);
 })
 
+
+fs.mkdirSync('media/uploads', { recursive: true })
+fs.mkdirSync('media/transcriptions', { recursive: true })
 
 app.use(express.json());
 app.use(cors());

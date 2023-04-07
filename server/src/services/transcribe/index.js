@@ -10,9 +10,9 @@ const whisperPath = which.sync("whisper-ctranslate2");
 const transcribe = async ({
   language,
   model,
-  uploadFileName,
+  uploadedFileName,
   originalFileName,
-  uploadFilePath,
+  uploadedFilePath,
   transcriptionOutputPath,
   numberToUse,
 }) => {
