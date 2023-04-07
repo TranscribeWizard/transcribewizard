@@ -3,7 +3,7 @@
 import { Combobox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
 import { Fragment, useState } from 'react'
-import { useController } from 'react-hook-form'
+import { Control, useController } from 'react-hook-form'
 
 type Data = {
   value:string,
@@ -12,9 +12,9 @@ type Data = {
 
 type Props = {
     name: string,
-    control: Control,
+    control: Control<any>,
     dataArr: Data[],
-    defaultValue:Data
+    defaultValue:Data | undefined
 }
 
 const ComboBox = ({name,control,dataArr,defaultValue}: Props) => {
