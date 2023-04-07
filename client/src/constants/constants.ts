@@ -1,8 +1,8 @@
 const languageNameMap = require('language-name-map/map')
 
 type LangMap={
-  languagecode:string,
-  laanguage:string
+  code:string,
+  name:string
 }
 
 const l = console.log;
@@ -102,19 +102,19 @@ const languagesToTranscribe = [
 //   })
 // }
 
-function shouldTranslateFrom (languageName) {
+function shouldTranslateFrom (languageName:LangMap) {
   return languagesToTranslateTo.includes(languageName);
 }
 
-let newLanguagesMap = [];
+let newLanguagesMap: LangMap[] = [];
 Object.keys(languageNameMap).forEach(languageCode =>{
   newLanguagesMap.push({
-    languageCode,
+    code: languageCode,
     name: languageNameMap[languageCode].name
   })
 });
 
-let allLanguages = [];
+let allLanguages: LangMap[] = [];
 Object.keys(languageNameMap).forEach(languageCode =>{
   allLanguages.push({
     code: languageCode,

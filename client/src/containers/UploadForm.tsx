@@ -1,11 +1,11 @@
 "use client";
 
 import { ComboBox } from "@/components";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { languagesArray, modelsArray } from "@/constants/constants";
 import { Toaster, toast } from "react-hot-toast";
 import { notify } from "../utils/notify";
+import { redirect } from "next/navigation";
 
 type ModelAndLang = {
   name: string;
@@ -24,6 +24,7 @@ type UploadResponse = {
   estTimeInSec: number;
   transcribeDataEndpoint: string;
   fileTitle: string;
+  transcriptionFolderId: number;
 };
 
 const UploadForm = ({}) => {
@@ -58,7 +59,7 @@ const UploadForm = ({}) => {
       if (res.ok) {
         toast.dismiss(uploadingToast);
         notify("File uploaded successfully", "success");
-        await afterUpload(resData.transcribeDataEndpoint, resData.estTimeInSec);
+        afterUpload(resData.transcriptionFolderId, resData.estTimeInSec);
 
       } else {
         toast.dismiss(uploadingToast);
@@ -66,48 +67,24 @@ const UploadForm = ({}) => {
       
       }
 
-    } catch (error: any) {
+    } catch (error) {
       toast.dismiss(uploadingToast);
       console.log("Error: ", error);
       notify("something went wrong", "error");
     }
   };
 
-  const afterUpload = async (endpoint: string, sec: number) => {
-
+  const afterUpload =  (transcriptionFolderId: number, sec: number) => {
     const transcribeToast = toast.loading("Transcription is in Process...");
-    try {
-      const transcriptiondata = await getTranscriptions(endpoint, sec);
-      if (transcriptiondata.success) {
-        toast.dismiss(transcribeToast);
-        notify(JSON.stringify(transcriptiondata), "success");
-      }
-      console.log("transcriptiondata :", transcriptiondata);
-    } catch (error) {
+    setTimeout(() => {
       toast.dismiss(transcribeToast);
-      notify(error.message, "error");
-      console.log("Error: ", error);
-    }
+      console.log("Transcription Folder Id: ", transcriptionFolderId);
+      redirect(`http://localhost:3000/player/${transcriptionFolderId}`)
+    }, sec * 1000);
+  
   };
 
-  const getTranscriptions = async (
-    endpoint: string,
-    time: number
-  ): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      setTimeout(async () => {
-        try {
-          const res = await fetch(endpoint);
-          const resData = await res.json();
-          resolve(resData);
-        } catch (error) {
-          reject(
-            new Error(`Error while fetching transcriptions: ${error.message}`)
-          );
-        }
-      }, time * 1000);
-    });
-  };
+
 
   return (
     <div className="rounded-md bg-base-300">
@@ -127,7 +104,7 @@ const UploadForm = ({}) => {
             {...register("ytdlink")}
             type="text"
             placeholder="Paste here"
-            className="input-bordered input-primary input w-full max-w-xs"
+            className="input-bordered disabled input-primary input w-full max-w-xs"
           />
         </div>
         <div className="form-control w-full max-w-xs">

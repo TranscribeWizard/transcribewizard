@@ -19,6 +19,7 @@ type Props = {
 
 const ComboBox = ({name,control,dataArr,defaultValue}: Props) => {
     const [query, setQuery] = useState("");
+
     const {
       field: { value, onChange }
     } = useController({name, control,defaultValue})
@@ -67,15 +68,15 @@ const ComboBox = ({name,control,dataArr,defaultValue}: Props) => {
               Nothing found.
             </div>
           ) : (
-            filteredArr.map((data:Data) => (
+            filteredArr.map((data:Data,i:number) => (
               <Combobox.Option
-                key={data.value}
+                key={i}
                 className={({ active }) =>
                   `relative z-10  cursor-default select-none py-2 pl-10 pr-4 ${
                     active ? "bg-primary text-white" : ""
                   }`
                 }
-                value={data.value}
+                value={data}
               >
                 {({ selected, active }) => (
                   <>
