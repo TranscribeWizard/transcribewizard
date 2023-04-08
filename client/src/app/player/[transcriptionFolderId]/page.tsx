@@ -1,3 +1,4 @@
+import { VideoPlayer } from '@/containers'
 import {type NextPage } from 'next'
 import React from 'react'
 
@@ -15,13 +16,22 @@ const getTranscriptions = async (transcriptionFolderId: string) => {
 
 const Page = async ({params}:Props) => {
 
+  const mediaUrl = `http://localhost:5001/api/v1/transcribe/${transcriptionFolderId}`
+  const mediaType = 'video/mp4'
+  const subtitlesUrl = `http://localhost:5001/api/v1/subtitle/`
 
-const text = await getTranscriptions(params.transcriptionFolderId)
+const vtttext = await getTranscriptions(params.transcriptionFolderId)
 
   return (
     <>
     <div>{params.transcriptionFolderId}</div>
-    <div>{text}</div>
+    <div>
+      <a href="/">Back</a>
+    </div>
+    <div>
+      <VideoPlayer  mediaUrl={mediaUrl} subtitlesUrl={subtitlesUrl} mediaType={mediaType} />
+    </div>
+    {/* <div>{text}</div> */}
     </>
   )
 }
