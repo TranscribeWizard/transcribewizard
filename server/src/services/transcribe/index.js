@@ -2,6 +2,7 @@ const which = require("which");
 const tryCatch = require("../../middleware/catchAsyncErr");
 const spawn = require("child_process").spawn;
 const { handleProcessClose, buildArguments, handleStdErr } = require("./helpers");
+const fs = require('fs-extra')
 
 l = console.log;
 
@@ -18,14 +19,16 @@ const transcribe = async ({
 }) => {
   return tryCatch(
     new Promise(async (resolve, reject) => {
-      // where app.js is running from
-      const processDir = process.cwd();
+      
+      l('uploaded file path from transcribe :', uploadedFilePath)
+      const metaDataPath = `media/transcriptions/${numberToUse}/metadata.json`
 
-      // original upload file path
-      const originalUpload = `${processDir}/src/media/uploads/${uploadFileName}`;
-
-      //
-      // const processingDataPath = `${processDir}/transcriptions/${numberToUse}/processing_data.json`
+      
+      await fs.writeFile(metaDataPath, JSON.stringify({
+        originalFileName,
+        uploadedFileName,
+        uploadedFilePath
+      }),{flag:'w+'})
 
       // save date when starting to see how long it's taking
       const startingDate = new Date();
@@ -33,7 +36,7 @@ const transcribe = async ({
       l(__dirname);
 
       const whisperArguments = buildArguments({
-        uploadedFilePath: uploadFilePath, // file to use
+        uploadedFilePath, 
         language,
         model,
         compute_type: "int8",
@@ -48,11 +51,11 @@ const transcribe = async ({
 
       whisperProcess.stdout.on("data", (data) => l(`STDOUT: ${data}`));
 
-      whisperProcess.stderr.on("data", handleStdErr());
+      whisperProcess.stderr.on("data", handleStdErr({metaDataPath}));
 
       whisperProcess.on(
         "close",
-        handleProcessClose({ originalUpload, numberToUse })
+        handleProcessClose({ metaDataPath })
       );
     })
   );

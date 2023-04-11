@@ -13,6 +13,6 @@ const storage = multer.diskStorage({
 
 router.post('/',upload.single('file'),initiateTranscribingService)
 
-router.get('/:fileid',getTranscribedFile)
+router.get('/:transcribedFolderID',getTranscribedFile)
 
 module.exports = router

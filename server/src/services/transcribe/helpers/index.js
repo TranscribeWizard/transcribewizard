@@ -1,4 +1,4 @@
-const { formatStdErr } = require("../../../utils/helpers");
+const { formatStdErr, writeMetadata } = require("../../../utils/helpers");
 const tryCatch = require("../../../middleware/catchAsyncErr");
 
 const buildArguments = ({
@@ -27,7 +27,7 @@ const buildArguments = ({
 
 
 // print the latest progress and save it to the processing data file
-const  handleStdErr = () => {
+const  handleStdErr = ({metaDataPath}) => {
    return function (data) {
      (tryCatch(async () => {
        l(`STDERR: ${data}`)
@@ -38,7 +38,15 @@ const  handleStdErr = () => {
        l(formattedProgress);
  
        const { percentDoneAsNumber, percentDone, speed, timeRemaining  } = formattedProgress;
- 
+       
+       writeMetadata(metaDataPath, {
+         status: 'progress',
+         message:'Transcription in progress...',
+         percentDoneAsNumber,
+         timeRemaining
+       })
+
+
        l(`percentDoneAsNumber: ${percentDoneAsNumber}`);
        l(`percentDone: `, percentDone);
        l(`speed: `, speed);
@@ -48,34 +56,28 @@ const  handleStdErr = () => {
    }
  }
 
-const handleProcessClose = ({ originalUpload, numberToUse }) => {
+const handleProcessClose = ({metaDataPath }) => {
   return function (code) {
     tryCatch(async () => {
       l(`PROCESS FINISHED WITH CODE: ${code}`);
 
       const processFinishedSuccessfullyBasedOnStatusCode = code === 0;
 
-      // if process failed
       if (!processFinishedSuccessfullyBasedOnStatusCode) {
-        // if process errored out
-        // await writeToProcessingDataFile(processingDataPath, {
-        //   status: 'error',
-        //   error: 'whisper process failed'
-        // })
 
-        // throw error if failed
+         writeMetadata(metaDataPath, {
+          status: 'error',
+          message: 'Transcription Failed'
+        })
 
         throw new Error("whisper process failed");
       } else {
-        // // TODO: pass file extension to this function
-        // const fileExtension = originalUpload.split('.').pop();
-        //
-        // // rename whisper created files
-        // await moveFiles(numberToUse, fileExtension)
-        // save mark upload as completed transcribing
-        // await writeToProcessingDataFile(processingDataPath, {
-        //   status: 'completed',
-        // })
+
+        writeMetadata(metaDataPath, {
+          status: 'completed',
+          message: 'Transcription Process Completed'
+
+        })
         l('whisper process finished successfully');
       }
     })();
