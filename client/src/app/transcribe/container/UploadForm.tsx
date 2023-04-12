@@ -6,6 +6,7 @@ import { languagesArray, modelsArray } from "@/constants";
 import { Toaster, toast } from "react-hot-toast";
 import { notify } from "@/utils/notify";
 import { redirect } from "next/navigation";
+import { useAppContext } from "@/app/contexts/Providers";
 type ModelAndLang = {
   name: string;
   value: string;
@@ -37,80 +38,25 @@ type UploadResponse =  {
 
 const UploadForm = ({}) => {
   const { register, handleSubmit, control } = useForm<FormData>();
+  const {uploadFormForTranscribing}  = useAppContext()
+
+  // const afterUpload =  (transcriptionFolderId: number, sec: number) => {
+  //   const transcribeToast = toast.loading("Transcription is in Process...");
+  //   setTimeout(() => {
+  //     toast.dismiss(transcribeToast);
+  //     console.log("Transcription Folder Id: ", transcriptionFolderId);
+  //     redirect(`http://localhost:3000/player/${transcriptionFolderId}`)
+  //   }, sec * 1000);
   
-  const onsubmit = async (fdata: FormData) => {
-    const { file, language, model, ytdlink } = fdata;
-    
-    if (!file[0] && !ytdlink) {
-      return notify("Provide a file or a link for transcribing", "error");
-    }
-
-    if (file[0] && ytdlink) {
-      return notify("Provide only one thing a link or a file", "error");
-    }
-
-    const uploadingToast = toast.loading("Ulpoading...");
-
-    const formData = new FormData();
-    formData.append("file", file[0] as Blob);
-    formData.append("language", language.value);
-    formData.append("model", model.value);
-    formData.append("ytdlink", ytdlink);
-
-    const eventSource = new EventSource("http://localhost:5001/api/v1/transcribe/sse");
-
-    try {
-      const res = await fetch("http://localhost:5001/api/v1/transcribe/sse", {
-        method: "POST",
-        body: formData,
-      });
-
-      eventSource.onmessage = (event) => {
-        const resData: UploadResponse = JSON.parse(event.data);
-
-        let transcribingtoast ;
-
-        switch(resData.status) {
-          case "uploaded":
-            toast.dismiss(uploadingToast);
-            notify("File uploaded successfully", "success");
-          case "progress":
-            transcribingtoast = toast.loading(`${resData.message + ' ' + resData.percentDone}`);
-          case "completed":
-            toast.dismiss(transcribingtoast);
-            notify(resData.message, "success");
-          default:
-            toast.dismiss(uploadingToast);
-            toast.dismiss(transcribingtoast);
-            notify(resData.message, "error");
-        }
-      }
-    } catch (error) {
-      toast.dismiss(uploadingToast);
-      console.log("Error: ", error);
-      notify("something went wrong", "error");
-    }
-  };
-
-  const afterUpload =  (transcriptionFolderId: number, sec: number) => {
-    const transcribeToast = toast.loading("Transcription is in Process...");
-    setTimeout(() => {
-      toast.dismiss(transcribeToast);
-      console.log("Transcription Folder Id: ", transcriptionFolderId);
-      redirect(`http://localhost:3000/player/${transcriptionFolderId}`)
-    }, sec * 1000);
-  
-  };
+  // };
 
 
 
   return (
-    <div className="rounded-md bg-base-300">
-      <Toaster />
-
+    <div className="rounded-md ">
       <h1 className="text-center text-2xl font-bold">Upload Form</h1>
       <form
-        onSubmit={handleSubmit(onsubmit)}
+        onSubmit={handleSubmit(uploadFormForTranscribing)}
         encType="multipart/form-data"
         className="flex flex-col"
       >

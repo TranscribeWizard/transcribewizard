@@ -8,7 +8,7 @@ import Link from 'next/link'
 const Navbar = ({}) => {
   return (
     <header>
-    <nav className="navbar md:px-24 px-10">
+    <nav className="navbar  md:px-24 px-10">
       <div className="navbar-start">
         <Link href={'../'} >
         <Image
