@@ -27,7 +27,9 @@ const transcribe = async ({
       await fs.writeFile(metaDataPath, JSON.stringify({
         originalFileName,
         uploadedFileName,
-        uploadedFilePath
+        uploadedFilePath,
+        status:'progress',
+        message:'Transcription just started...'
       }),{flag:'w+'})
 
       // save date when starting to see how long it's taking

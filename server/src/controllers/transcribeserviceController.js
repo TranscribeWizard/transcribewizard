@@ -7,6 +7,7 @@ const transcribe = require("../services/transcribe");
 const { generateRandomNumber, makeFileNameSafe } = require("../utils/helpers");
 const tryCatch = require("../middleware/catchAsyncErr");
 const ErrorHandler = require("../utils/ErrorHandler");
+const { getWebsocket } = require("../utils/webSocket");
 
 const l = console.log;
 
@@ -82,6 +83,12 @@ exports.initiateTranscribingService = tryCatch(async (req, res, next) => {
       fileTitle: filename,
     });
   }
+
+  const ws = getWebsocket()
+  if (!ws) {
+    return res.status(500).send('WebSocket connection not established');
+  }
+  ws.send('my first websocket message');
 
   await transcribe({
     language: lang,

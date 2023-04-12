@@ -1,13 +1,15 @@
 const express = require("express");
 const app = express();
+const http = require("http");
+const server = http.createServer(app);
 const fs = require('fs')
-
-// const server = require("http").createServer(app);
-// const io = require("socket.io")(server);
-
 const cors = require("cors");
 const dotenv = require("dotenv");
+const { createWebSocketServer } = require("./src/utils/webSocket");
 dotenv.config();
+
+createWebSocketServer(server);
+
 const errorMiddlewear = require("./src/middleware/error");
 
 const transcribeserviceRouter = require("./src/routes/transcribeserviceRouter");
@@ -32,19 +34,15 @@ app.use(express.json());
 app.use(cors());
 
 app.get("/", (req, res) => res.send("Hello World!"));
+app.get("/socket", (req, res) => res.sendStatus(200));
 app.use("/api/v1/transcribe", transcribeserviceRouter);
 
 
-const mainserver = app.listen(PORT, () => {
+const mainserver = server.listen(PORT, () => {
   console.log(`server is running on http://localhost:${PORT}`);
 });
 
-// io.on('connection', (socket) => {
-//   console.log('user connected');
-//   socket.on('disconnect', function () {
-//     console.log('user disconnected');
-//   });
-// })
+
 
 app.use(errorMiddlewear);
 
