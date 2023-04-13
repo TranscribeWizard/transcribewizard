@@ -6,7 +6,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 const l = console.log;
 
-const appContext = createContext<StateProps>({});
+const appContext = createContext<StateProps>({} as StateProps);
 
 type Props = {
   children?: React.ReactNode;
@@ -25,8 +25,7 @@ type StateProps = {
     url: string;
     ogFilename: string;
   } | null,
-  settranscriptionDownloadData: (data: { url: string; ogFilename: string }) => void;
-};
+} ;
 
 type ModelAndLang = {
   name: string;
@@ -239,7 +238,6 @@ export const Provider = ({ children }: Props) => {
     transcriptionDownloadData,
     transcriptionCompleted,
     transcribeDataEndpoint: UploadResponse.transcribeDataEndpoint as string,
-    settranscriptionDownloadData,
   };
   return (
     <appContext.Provider value={state}>
