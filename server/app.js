@@ -7,14 +7,8 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const { createWebSocketServer } = require("./src/utils/webSocket");
 dotenv.config();
-
-createWebSocketServer(server);
-
 const errorMiddlewear = require("./src/middleware/error");
-
 const transcribeserviceRouter = require("./src/routes/transcribeserviceRouter");
-
-
 const PORT = process.env.PORT || 5001;
 
 // Handling uncaught expections
@@ -26,6 +20,7 @@ process.on("uncaughtException", (err) => {
   process.exit(1);
 })
 
+createWebSocketServer(server);
 
 fs.mkdirSync('media/uploads', { recursive: true })
 fs.mkdirSync('media/transcriptions', { recursive: true })

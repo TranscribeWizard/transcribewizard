@@ -1,5 +1,5 @@
 const WebSocket = require('ws');
-
+const l = console.log;
 const MAX_PING_FAILURES = 3;
 let websocketConnection;
 
@@ -34,7 +34,7 @@ const createWebSocketServer = (server) => {
       }
     });
 
-    setInterval(checkForDeadConnection, 5000);
+    setInterval(()=>checkForDeadConnection(websocketConnection), 10000);
   });
 };
 
@@ -44,33 +44,37 @@ const setWebsocketConnection = (ws) => {
   websocketConnection = ws;
 };
 
-const checkForDeadConnection = () => {
-    const pingFailures = websocketConnection.pingFailures || 0;
+const checkForDeadConnection = (currentws) => {
+  if(!currentws) return;
+    l('ping failure : ' + currentws.pingFailures);
+    const pingFailures = currentws.pingFailures || 0;
+    l('pingfailures', pingFailures);
     if (pingFailures >= MAX_PING_FAILURES) {
-      console.log(`WebSocket connection ${websocketConnection.id} exceeded maximum ping failures`);
+      console.log(`WebSocket connection ${currentws.id} exceeded maximum ping failures`);
       try {
-        websocketConnection.terminate();
+        currentws.terminate();
       } catch (error) {
         console.error(`Error terminating WebSocket connection: ${error}`);
       }
-      websocketConnection = null;
-    } else if (websocketConnection.isAlive === false) {
-      console.log(`WebSocket connection ${websocketConnection.id} is dead`);
+      currentws = null;
+    } else if (currentws.isAlive === false) {
+      console.log(`WebSocket connection ${currentws.id} is dead`);
       try {
-        websocketConnection.terminate();
+        currentws.terminate();
       } catch (error) {
         console.error(`Error terminating WebSocket connection: ${error}`);
       }
-      websocketConnection = null;
+      currentws = null;
     } else {
-      websocketConnection.isAlive = false;
-      websocketConnection.ping();
-      websocketConnection.pingFailures = pingFailures + 1;
+      currentws.isAlive = false;
+      currentws.ping();
+      currentws.pingFailures = pingFailures + 1;
     }
   };
   
 
 const getWebsocket = () => {
+  console.log("i am a from GetWebsocket()");
   return websocketConnection;
 };
 

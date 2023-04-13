@@ -101,9 +101,27 @@ const makeFileNameSafe = (string) => {
       console.error(`Error writing metadata to ${path}: ${err}`);
     }
   };
+
+
+  const wsSend = (socket, data) => {
+    if(socket){
+
+      if(socket.readyState || socket.readyState === 0) {
+        socket.send(JSON.stringify(data));
+      }else{
+        console.log('socket not ready');
+      }
+    }
+    else{
+      console.log('socket closed i guess...');
+    }
+  }
+
+
   module.exports = {
     makeFileNameSafe,
     formatStdErr,
     generateRandomNumber,
-    writeMetadata
+    writeMetadata,
+    wsSend
   }

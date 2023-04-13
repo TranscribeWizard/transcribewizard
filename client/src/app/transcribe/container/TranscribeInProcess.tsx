@@ -1,17 +1,17 @@
 
-import SocketSingleton from "@/utils/SocetSingleton";
 import { HashLoader } from "react-spinners";
 
 type Props = {
-  PercentageDone?: number;
+  PercentageDone?: number | undefined | null;
   message: string;
   error: boolean;
 };
 
-const socket = SocketSingleton.getInstance();
+// const socket = SocketSingleton.getInstance();
 
 
 function TranscribeInProcess({ PercentageDone, message, error }: Props) {
+
   return (
     <>
         <div className="flex flex-col justify-center text-center  items-center gap-3">

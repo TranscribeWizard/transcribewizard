@@ -3,15 +3,11 @@ import { Provider } from "@/app/contexts/Providers";
 
 
 import {TranscribeWrapper} from "./container";
-import SocketSingleton from "@/utils/SocetSingleton";
 
 export default function Transcribe() {
-  const socket = SocketSingleton.getInstance();
 
   
-  socket.addEventListener('message', (event) => {
-    console.log(`WebSocket received message: ${event.data}`);
-  });
+
 
     return (
         <div className="bg-base-300">

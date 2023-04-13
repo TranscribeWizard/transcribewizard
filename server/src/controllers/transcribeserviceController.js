@@ -4,14 +4,17 @@ const {
 } = require("../utils/downloading/yt-dlp-download");
 const fs = require("fs-extra");
 const transcribe = require("../services/transcribe");
-const { generateRandomNumber, makeFileNameSafe } = require("../utils/helpers");
+const { generateRandomNumber, makeFileNameSafe, wsSend } = require("../utils/helpers");
 const tryCatch = require("../middleware/catchAsyncErr");
 const ErrorHandler = require("../utils/ErrorHandler");
 const { getWebsocket } = require("../utils/webSocket");
 
 const l = console.log;
 
+
+
 exports.initiateTranscribingService = tryCatch(async (req, res, next) => {
+  const ws = getWebsocket()
   const file = req.file;
   l(req.body);
 
@@ -82,13 +85,19 @@ exports.initiateTranscribingService = tryCatch(async (req, res, next) => {
       transcribeDataEndpoint: `${host}/api/v1/transcribe/${numberToUse}`,
       fileTitle: filename,
     });
+    wsSend(ws, {
+      type: "initiateTranscribingService",
+      numberToUse,
+      message:"initiated transcribing service",
+      originalFileName,
+      uploadedFileName,
+      uploadedFilePath,
+      transcriptionOutputPath,
+      status:"progress",
+    })
   }
 
-  const ws = getWebsocket()
-  if (!ws) {
-    return res.status(500).send('WebSocket connection not established');
-  }
-  ws.send('my first websocket message');
+
 
   await transcribe({
     language: lang,
@@ -98,6 +107,7 @@ exports.initiateTranscribingService = tryCatch(async (req, res, next) => {
     uploadedFilePath,
     transcriptionOutputPath,
     numberToUse,
+    socket: ws,
   });
 });
 
@@ -118,18 +128,16 @@ exports.getTranscribedFile = tryCatch(async (req, res, next) => {
     originalFileName,
     uploadedFileName,
     status,
-    percentDoneAsNumber,
-    timeRemaining,
+    message
   } = metadata;
   const transcriptionOutputPath = `${process.cwd()}/media/transcriptions/${transcribedFolderID}/${uploadedFileName}.vtt`;
 
   if (status == "progress") {
     return res.status(200).json({
-      message: "transcription is in process...",
+      message,
       hint: "send a request again after the estimated time",
       success: true,
       estTimeInSec: 10,
-      percentDoneAsNumber,
     });
   }
 

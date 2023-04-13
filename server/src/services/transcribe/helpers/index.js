@@ -1,4 +1,4 @@
-const { formatStdErr, writeMetadata } = require("../../../utils/helpers");
+const { formatStdErr, writeMetadata, wsSend } = require("../../../utils/helpers");
 const tryCatch = require("../../../middleware/catchAsyncErr");
 
 const buildArguments = ({
@@ -27,7 +27,7 @@ const buildArguments = ({
 
 
 // print the latest progress and save it to the processing data file
-const  handleStdErr = ({metaDataPath}) => {
+const  handleStdErr = ({metaDataPath, socket}) => {
    return function (data) {
      (tryCatch(async () => {
        l(`STDERR: ${data}`)
@@ -39,12 +39,20 @@ const  handleStdErr = ({metaDataPath}) => {
  
        const { percentDoneAsNumber, percentDone, speed, timeRemaining  } = formattedProgress;
        
-       writeMetadata(metaDataPath, {
-         status: 'progress',
-         message:'Transcription in progress...',
-         percentDoneAsNumber,
-         timeRemaining
-       })
+      //  writeMetadata(metaDataPath, {
+      //    status: 'progress',
+      //    message:'Transcription in progress...',
+      //    percentDoneAsNumber,
+      //    timeRemaining
+      //  })
+
+      wsSend(socket, {
+        type:'initiateTranscribingService',
+        message: 'Transcription in progress...',
+        status:"progress",
+        percent: percentDoneAsNumber,
+        timeRemaining: timeRemaining
+      })
 
 
        l(`percentDoneAsNumber: ${percentDoneAsNumber}`);
@@ -56,7 +64,7 @@ const  handleStdErr = ({metaDataPath}) => {
    }
  }
 
-const handleProcessClose = ({metaDataPath }) => {
+const handleProcessClose = ({metaDataPath, socket }) => {
   return function (code) {
     tryCatch(async () => {
       l(`PROCESS FINISHED WITH CODE: ${code}`);
@@ -70,6 +78,12 @@ const handleProcessClose = ({metaDataPath }) => {
           message: 'Transcription Failed'
         })
 
+      wsSend(socket, {
+        type:'initiateTranscribingService',
+        message: 'Transcription Failed',
+        status:"error"
+      })
+
         throw new Error("whisper process failed");
       } else {
 
@@ -78,6 +92,13 @@ const handleProcessClose = ({metaDataPath }) => {
           message: 'Transcription Process Completed'
 
         })
+
+        wsSend(socket, {
+          type:'initiateTranscribingService',
+          message: 'Transcription Process Completed',
+          status:"completed"
+        })
+
         l('whisper process finished successfully');
       }
     })();

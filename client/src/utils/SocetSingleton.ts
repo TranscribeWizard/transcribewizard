@@ -1,5 +1,4 @@
 import WebSocket from 'ws';
-
 class SocketSingleton {
     private static instance: WebSocket | null = null;
   

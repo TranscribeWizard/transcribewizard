@@ -2,7 +2,7 @@
 
 import { notify } from "@/utils/notify";
 import { SessionProvider } from "next-auth/react";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 const l = console.log;
 
@@ -15,14 +15,17 @@ type Props = {
 type StateProps = {
   uploadFormForTranscribing: (fdata: FormData) => Promise<void>;
   UploadResponse: UploadResponse;
+  transcribeDataEndpoint: string;
   transcriptionstarted: boolean;
   message: string;
-  transcriptioninPercent: number;
+  transcriptioninPercent: number | null;
   errorwhiletranscription: boolean;
+  transcriptionCompleted: boolean;  
   transcriptionDownloadData:{
     url: string;
     ogFilename: string;
-  } | null
+  } | null,
+  settranscriptionDownloadData: (data: { url: string; ogFilename: string }) => void;
 };
 
 type ModelAndLang = {
@@ -62,11 +65,72 @@ type UploadResponse = {
 
 export const Provider = ({ children }: Props) => {
   const [transcriptionstarted, setTranscriptionstarted] = useState(false);
-  const [transcriptioninPercent, setTranscriptioninPercent] = useState(0);
+  const [transcriptioninPercent, setTranscriptioninPercent] = useState(null);
   const [errorwhiletranscription, seterrorwhiletranscription] = useState(false);
   const [transcriptionDownloadData, settranscriptionDownloadData] = useState(null);
+  const [transcriptionCompleted, setTranscriptionCompleted] = useState(false);
   const [message, setMessage] = useState("");
   const [UploadResponse, setUploadResponse] = useState<UploadResponse>({} as UploadResponse);
+  const [ws, setWs] = useState<WebSocket | null>(null);
+
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:5001/socket');
+
+    ws.addEventListener('open', () => {
+      console.log('WebSocket connection established.');
+    });
+
+    ws.addEventListener('message', (event) => {
+      const data = JSON.parse(event.data);
+      console.log('Received message:',data);
+
+      switch (data.status) {
+        case "progress":
+          setTranscriptioninPercent(data.percent);
+          setMessage(data.message);
+          break;
+        case "completed":
+          setMessage(data.message);
+          setTranscriptionCompleted(true);
+          break;
+        case "error":
+          seterrorwhiletranscription(true);
+          setMessage(data.message);
+          break;
+      }
+
+    });
+
+    ws.addEventListener('error', (error) => {
+      console.error('WebSocket error:', error);
+    });
+
+    ws.addEventListener('close', (event) => {
+      console.log('WebSocket connection closed:', event.code, event.reason);
+    });
+
+  ws.addEventListener('ping', () => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send('pong');
+    } else {
+      console.error('websocket does not send pong event');
+    }
+  });
+
+    setWs(ws);
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+
+  const sendMessage = (message: string) => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(message);
+    } else {
+      console.error('WebSocket is not open.');
+    }
+  };
 
   const uploadFormForTranscribing = async (fdata: FormData) => {
     const { file, language, model, ytdlink } = fdata;
@@ -173,6 +237,9 @@ export const Provider = ({ children }: Props) => {
     transcriptioninPercent,
     errorwhiletranscription,
     transcriptionDownloadData,
+    transcriptionCompleted,
+    transcribeDataEndpoint: UploadResponse.transcribeDataEndpoint as string,
+    settranscriptionDownloadData,
   };
   return (
     <appContext.Provider value={state}>
