@@ -25,6 +25,8 @@ type StateProps = {
     url: string;
     ogFilename: string;
   } | null,
+  errorWhileTranslation: boolean;
+  shouldTranslate: boolean;
 } ;
 
 type ModelAndLang = {
@@ -37,6 +39,7 @@ type FormData = {
   language: ModelAndLang;
   model: ModelAndLang;
   ytdlink: string;
+  languagesToTranslate?: string[];
 };
 
 type UploadResponse = {
@@ -45,13 +48,8 @@ type UploadResponse = {
   estTimeInSec?: number;
   message: string;
   hint?: string;
-  percentDoneAsNumber?: number;
-  timeRemaining?: {
-    string: string;
-    hoursRemaining: number | string;
-    minutesRemaining: string;
-    secondsRemaining: string;
-  };
+  shouldTranslate: boolean;
+  serviceRunning?: string;
   transcribeDataEndpoint?: string;
   fileTitle?: string;
   transcriptionFolderId?: string;
@@ -67,7 +65,9 @@ export const Provider = ({ children }: Props) => {
   const [transcriptioninPercent, setTranscriptioninPercent] = useState(null);
   const [errorwhiletranscription, seterrorwhiletranscription] = useState(false);
   const [transcriptionDownloadData, settranscriptionDownloadData] = useState(null);
+  const [errorWhileTranslation, seterrorWhileTranslation] = useState(false)
   const [transcriptionCompleted, setTranscriptionCompleted] = useState(false);
+  const [shouldTranslate, setshouldTranslate] = useState(false)
   const [message, setMessage] = useState("");
   const [UploadResponse, setUploadResponse] = useState<UploadResponse>({} as UploadResponse);
   const [ws, setWs] = useState<WebSocket | null>(null);
@@ -93,8 +93,13 @@ export const Provider = ({ children }: Props) => {
           setTranscriptionCompleted(true);
           break;
         case "error":
-          seterrorwhiletranscription(true);
-          setMessage(data.message);
+          if(data.serviceRunning == 'translate'){
+            seterrorWhileTranslation(true);
+            setMessage(data.message);
+          }else{
+            seterrorwhiletranscription(true);
+            setMessage(data.message);
+          }
           break;
       }
 
@@ -134,6 +139,11 @@ export const Provider = ({ children }: Props) => {
   const uploadFormForTranscribing = async (fdata: FormData) => {
     const { file, language, model, ytdlink } = fdata;
 
+    const languagesToTranslate = [
+      'es',
+      'en'
+    ]
+
     if (!file[0] && !ytdlink) {
       return notify("Provide a file or a link for transcribing", "error");
     }
@@ -149,6 +159,7 @@ export const Provider = ({ children }: Props) => {
     formData.append("language", language.value);
     formData.append("model", model.value);
     formData.append("ytdlink", ytdlink);
+    formData.append("languagesToTranslateString", languagesToTranslate.join(","));
 
     try {
       const res = await fetch("http://localhost:5001/api/v1/transcribe", {
@@ -167,10 +178,7 @@ export const Provider = ({ children }: Props) => {
       const {
         success,
         message,
-        transcribeDataEndpoint,
-        fileTitle,
-        estTimeInSec,
-        transcriptionFolderId,
+        shouldTranslate
       } = resData;
 
       if (!success) {
@@ -180,6 +188,7 @@ export const Provider = ({ children }: Props) => {
       }
       toast.dismiss(uploadingToast);
       notify(message, "success");
+      setshouldTranslate(shouldTranslate);
       setUploadResponse(resData);
       setMessage(resData.message);
       setTranscriptionstarted(true);
@@ -238,6 +247,8 @@ export const Provider = ({ children }: Props) => {
     transcriptionDownloadData,
     transcriptionCompleted,
     transcribeDataEndpoint: UploadResponse.transcribeDataEndpoint as string,
+    errorWhileTranslation,
+    shouldTranslate
   };
   return (
     <appContext.Provider value={state}>

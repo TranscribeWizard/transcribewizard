@@ -9,7 +9,13 @@ module.exports = (err,req,res,next) =>{
        const message = `Resourse Not Found. Invalid ${err.path}`
        err = new ErrorHandler(message,400)
     }
-
+    console.log({
+        success:false,
+        statusCode:err.statusCode,
+        message:err.message,
+        Stack:err.stack
+    })
+    
     res.status(err.statusCode).json({
         success:false,
         statusCode:err.statusCode,
