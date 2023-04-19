@@ -46,7 +46,7 @@ const translate = async ({
         l("vtt file :", vttFile);
       } catch (error) {
         l("error reading vtt file :", error);
-        return reject(error);
+        return ;
       }
       if (!vttFile) {
         reject("vtt file not found");
@@ -81,9 +81,11 @@ const translate = async ({
             serviceRunning: "translate",
             message: `starting Translation of ${lang}`,
           });
-      
-          const translatedLines = await fetchTranslations(linesToTranslate, lang);
-          
+      try {
+        const translatedLines = await fetchTranslations(linesToTranslate, lang);
+      } catch (error) {
+        return reject(error);
+      }
           l("translatedLines :", translatedLines);
 
           if(!translatedLines){
