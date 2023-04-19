@@ -2,7 +2,7 @@ const { writeMetadata, wsSend } = require("../../../utils/helpers");
 const tryCatch = require("../../../middleware/catchAsyncErr");
 const translate = require("../../translate");
 
-const l = console.log
+const l = console.log;
 
 const buildArguments = ({
   uploadedFilePath,
@@ -102,23 +102,25 @@ const handleStdErr = ({ metaDataPath, socket }) => {
       const formattedProgress = formatStdErr(data.toString());
       l("formattedProgress :", formattedProgress);
 
-
       const { percentDoneAsNumber, percentDone, speed, timeRemaining } =
         formattedProgress;
+        
+      if (percentDoneAsNumber) {
+        wsSend(socket, {
+          type: "initiateTranscribingService",
+          message: "Transcription in progress...",
+          serviceRunning: "transcribe",
+          status: "progress",
+          percent: percentDoneAsNumber,
+          timeRemaining: timeRemaining,
+        });
 
-      wsSend(socket, {
-        type: "initiateTranscribingService",
-        message: "Transcription in progress...",
-        serviceRunning: "transcribe",
-        status: "progress",
-        percent: percentDoneAsNumber,
-        timeRemaining: timeRemaining,
-      });
+        l(`percentDoneAsNumber: ${percentDoneAsNumber}`);
+        l(`percentDone: `, percentDone);
+        l(`speed: `, speed);
+        l(`timeRemaining: `, timeRemaining);
+      }
 
-      l(`percentDoneAsNumber: ${percentDoneAsNumber}`);
-      l(`percentDone: `, percentDone);
-      l(`speed: `, speed);
-      l(`timeRemaining: `, timeRemaining);
     })();
   };
 };
@@ -158,8 +160,7 @@ const handleProcessClose = ({
 
         reject(new Error("whisper process failed"));
       } else {
-
-        l("Translation started")
+        l("Translation started");
 
         if (shouldTranslate) {
           writeMetadata(metaDataPath, {
@@ -188,23 +189,22 @@ const handleProcessClose = ({
               metaDataPath,
             });
           } catch (error) {
-            l('error from translate:',  error)
+            l("error from translate:", error);
 
             writeMetadata(metaDataPath, {
               status: "error",
               serviceRunning: "translate",
               message: "Translation Failed",
-            })
+            });
 
             wsSend(socket, {
               type: "initiateTranscribingService",
               serviceRunning: "translate",
               message: "Translation Failed",
               status: "error",
-            })
-        
+            });
           }
-          } else {
+        } else {
           writeMetadata(metaDataPath, {
             status: "completed",
             message: "Transcription Process Completed",
@@ -217,11 +217,9 @@ const handleProcessClose = ({
           });
 
           resolve(true);
-
         }
-    
-        l("whisper process finished successfully");
 
+        l("whisper process finished successfully");
       }
     })();
   };

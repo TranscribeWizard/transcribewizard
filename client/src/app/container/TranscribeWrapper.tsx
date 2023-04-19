@@ -19,7 +19,7 @@ interface Result {
 
 export default function TranscribeWrapper() {
   const [transcribedFile, setTranscribedFile] = useState<TranscribedFile>(null);
-  const [vttUrls, setVttUrls] = useState< Record<string, string>>({});
+  const [vttUrls, setVttUrls] = useState<Record<string, string>>({});
   const {
     transcriptionstarted,
     message,
@@ -35,7 +35,10 @@ export default function TranscribeWrapper() {
 
   useEffect(() => {
     async function fetchTranscription() {
-      if (transcriptionCompleted && transcribeDataEndpoint) {
+      if (
+        (transcriptionCompleted && transcribeDataEndpoint) ||
+        (shouldTranslate && errorWhileTranslation)
+      ) {
         try {
           const response = await fetch(transcribeDataEndpoint);
 
@@ -58,12 +61,21 @@ export default function TranscribeWrapper() {
             setVttUrls(urls);
           } else {
             // If the response is a vtt file
-            const vttFile = await response.blob();
-            const vttFileUrl = URL.createObjectURL(vttFile);
-            setTranscribedFile({
-              url: vttFileUrl,
-              ogFilename: response.headers.get("Content-Disposition") as string,
-            });
+            const responsedata = await response.json();
+            if (responsedata.success) {
+              const { vtt, ogFilename } = responsedata;
+              const vttFile = new Blob([vtt], { type: "text/vtt" });
+              const vttFileUrl = URL.createObjectURL(vttFile);
+              setTranscribedFile({
+                url: vttFileUrl,
+                ogFilename: ogFilename,
+              });
+             errorWhileTranslation? notify(responsedata.message, "error") : notify(responsedata.message, "success");
+            } else {
+              setTranscribedFile(null);
+              console.error(responsedata.message);
+              notify("Error while fetching transcription", "error");
+            }
           }
         } catch (error) {
           console.error(error);
@@ -73,7 +85,12 @@ export default function TranscribeWrapper() {
       }
     }
     fetchTranscription();
-  }, [transcriptionCompleted, transcribeDataEndpoint]);
+  }, [
+    transcriptionCompleted,
+    transcribeDataEndpoint,
+    errorWhileTranslation,
+    shouldTranslate,
+  ]);
 
   const isvttUrls = vttUrls && Object.keys(vttUrls).length > 0;
 
@@ -84,42 +101,49 @@ export default function TranscribeWrapper() {
           <UploadForm />
         ) : !transcribedFile && !isvttUrls ? (
           <TranscribeInProcess
-            error={errorwhiletranscription ? true : errorWhileTranslation ? true : false}
+            error={
+              errorwhiletranscription
+                ? true
+                : errorWhileTranslation
+                ? true
+                : false
+            }
             message={message}
             PercentageDone={transcriptioninPercent}
           />
         ) : (
           <div className="text-center flex flex-col gap-5 justify-center items-center">
             <h5 className="">Here is your transcription of</h5>
-           {transcribedFile?
-           <>
-            <h2>{transcribedFile.ogFilename}</h2>
-            <a
-              href={transcribedFile.url}
-              download={transcribedFile.ogFilename + ".vtt"}
-              className="btn"
-              >
-              Download Transcription
-            </a>
-            </>:(
+            {transcribedFile ? (
               <>
-              {isvttUrls && Object.keys(vttUrls).map((key) => {
-                return (
-                  <>
-                    <h2>{key}</h2>
-                    <a
-                      href={vttUrls[key]}
-                      download={key + ".vtt"}
-                      className="btn"
-                      >
-                      Download Transcription
-                    </a>
-                  </>
-                );
-              })}
+                <h2>{transcribedFile.ogFilename}</h2>
+                <a
+                  href={transcribedFile.url}
+                  download={transcribedFile.ogFilename + ".vtt"}
+                  className="btn"
+                >
+                  Download Transcription
+                </a>
               </>
-            )
-            }
+            ) : (
+              <>
+                {isvttUrls &&
+                  Object.keys(vttUrls).map((key) => {
+                    return (
+                      <>
+                        <h2>{key}</h2>
+                        <a
+                          href={vttUrls[key]}
+                          download={key + ".vtt"}
+                          className="btn"
+                        >
+                          Download Transcription
+                        </a>
+                      </>
+                    );
+                  })}
+              </>
+            )}
           </div>
         )}
       </div>

@@ -19,7 +19,7 @@ const l = console.log;
 exports.initiateTranscribingService = tryCatch(async (req, res, next) => {
   const ws = getWebsocket();
   const file = req.file;
-  l("-----------\nrequest body",req.body,'-----------\n');
+  l("-----------\nrequest body", req.body, "-----------\n");
 
   const { language, model, ytdlink, languagesToTranslateString } = req.body;
 
@@ -100,23 +100,23 @@ exports.initiateTranscribingService = tryCatch(async (req, res, next) => {
     });
   }
 
-  try{
-  await transcribe({
-    language: lang,
-    model,
-    uploadedFileName,
-    originalFileName,
-    uploadedFilePath,
-    transcriptionOutputPath,
-    shouldTranslate: languagesToTranslate[0] ? true : false,
-    languagesToTranslate,
-    numberToUse,
-    socket: ws,
-  });
-  l("i am completed but translation is running...");
-} catch (error) {
-  l("error from transcribe service :", error);
-}
+  try {
+    await transcribe({
+      language: lang,
+      model,
+      uploadedFileName,
+      originalFileName,
+      uploadedFilePath,
+      transcriptionOutputPath,
+      shouldTranslate: languagesToTranslate[0] ? true : false,
+      languagesToTranslate,
+      numberToUse,
+      socket: ws,
+    });
+    l("i am completed but translation is running...");
+  } catch (error) {
+    l("error from transcribe service :", error);
+  }
 });
 
 exports.getTranscribedFile = tryCatch(async (req, res, next) => {
@@ -159,32 +159,38 @@ exports.getTranscribedFile = tryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Error occurred during transcription", 500));
   }
 
-  if (status == "error" && shouldTranslate && serviceRunning == "transcribe") {
-    return next(new ErrorHandler("Error occurred during transcription", 500));
-  }
-
   const isErrorInTranslating =
     status == "error" && shouldTranslate && serviceRunning == "translate";
 
+
   const safeOriginalName = makeFileNameSafe(originalFileName);
 
-  let ogVtt;
+  const ogVtt = await fs.readFile(transcriptionOutputPath, "utf8");
 
-  ogVtt = fs.readFileSync(transcriptionOutputPath, "utf8");
+  l("ogVtt :", ogVtt);
 
   if (shouldTranslate && !isErrorInTranslating) {
     let translatedVtts = [];
 
     for (lang of languagesToTranslate) {
-      let translatedVtt = fs.readFileSync(
-        `${translationFolderPath}/${uploadedFileName + "_" + lang}.vtt`,
-        "utf8"
-      );
-      translatedVtts.push({
-        vttNameForAttachment: `${safeOriginalName + "_" + lang}.vtt`,
-        translatedVtt,
-      });
+      const translatedFilePath = `${translationFolderPath}/${
+        uploadedFileName + "_" + lang
+      }.vtt`;
+      const canBeRead = await fs.access(translatedFilePath);
+      if (canBeRead) {
+        l("can be read :", canBeRead);
+        let translatedVtt = await fs.readFile(
+          `${translationFolderPath}/${uploadedFileName + "_" + lang}.vtt`,
+          "utf8"
+        );
+        translatedVtts.push({
+          vttNameForAttachment: `${safeOriginalName + "_" + lang}.vtt`,
+          translatedVtt,
+        });
+      }
     }
+
+    l("translated vtts :", translatedVtts);
 
     const zip = new JSZip();
     zip.file(`${safeOriginalName}.vtt`, ogVtt);
@@ -194,7 +200,7 @@ exports.getTranscribedFile = tryCatch(async (req, res, next) => {
         translatedVtts[i].translatedVtt
       );
     }
-    
+
     zip
       .generateAsync({ type: "nodebuffer" })
       .then((content) => {
@@ -208,20 +214,33 @@ exports.getTranscribedFile = tryCatch(async (req, res, next) => {
         console.error(`Error creating zip file: ${error}`);
         return next(new ErrorHandler("Error creating zip file", 500));
       });
-
   } else {
+ 
     if (isErrorInTranslating) {
+      const additionalData = {
+        message:"Error occurred during Translation",
+        success:true,
+      ogFilename: safeOriginalName,
+      status:"completed",
+      
+      }
       res.set({
         "Content-Type": "text/vtt",
         "Content-Disposition": `attachment; filename="${safeOriginalName}.vtt"`,
       });
-      res.status(200).send(ogVtt);
+      res.status(200).send({ vtt: ogVtt, ...additionalData });
     } else {
+      const additionalData = {
+        message: "transcription completed",
+        success: true,
+        status: "completed",
+        ogFilename: safeOriginalName,
+      };
       res.set({
         "Content-Type": "text/vtt",
         "Content-Disposition": `attachment; filename="${safeOriginalName}.vtt"`,
       });
-      res.status(200).send(ogVtt);
+      res.status(200).send({ vtt: ogVtt, ...additionalData });
     }
   }
 });
