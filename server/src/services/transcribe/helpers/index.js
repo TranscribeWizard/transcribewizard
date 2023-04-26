@@ -16,7 +16,7 @@ const buildArguments = ({
   arguments.push(uploadedFilePath);
   if (language) arguments.push("--language", language);
   if (model) arguments.push("--model", model);
-  arguments.push("--compute_type", compute_type);
+  // arguments.push("--compute_type", compute_type);
   arguments.push("--verbose", "False");
   // arguments.push("--word_timestamps", "True");
   arguments.push("--output_dir", `media/transcriptions/${numberToUse}`);
