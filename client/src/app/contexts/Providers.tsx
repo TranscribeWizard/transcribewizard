@@ -252,7 +252,7 @@ export const Provider = ({ children }: Props) => {
   };
   return (
     <appContext.Provider value={state}>
-      <SessionProvider>{children}</SessionProvider>
+      {children}
     </appContext.Provider>
   );
 };
